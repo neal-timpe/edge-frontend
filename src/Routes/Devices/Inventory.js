@@ -6,6 +6,8 @@ import {
 import { Main } from '@redhat-cloud-services/frontend-components/Main';
 import { useHistory } from 'react-router-dom';
 import DeviceTable from './DeviceTable';
+import AddDeviceModal from './AddDeviceModal';
+import CreateGroupModal from '../Groups/CreateGroupModal';
 import useApi from '../../hooks/useApi';
 import { getInventory } from '../../api';
 import { Bullseye, Spinner } from '@patternfly/react-core';
@@ -17,6 +19,8 @@ const UpdateDeviceModal = React.lazy(() =>
 const Inventory = () => {
   const [response, fetchData] = useApi(getInventory);
   const { data, isLoading, hasError } = response;
+  const [isAddDeviceModalOpen, setIsAddDeviceModalOpen] = useState(true);
+  const [isCreateGroupModalOpen, setIsCreateGroupModalOpen] = useState(false);
   const [updateModal, setUpdateModal] = useState({
     isOpen: false,
     deviceData: null,
@@ -62,6 +66,21 @@ const Inventory = () => {
             refreshTable={fetchData}
           />
         </Suspense>
+      )}
+      {isAddDeviceModalOpen && (
+        <AddDeviceModal
+          isModalOpen={isAddDeviceModalOpen}
+          setIsModalOpen={setIsAddDeviceModalOpen}
+          setIsCreateGroupModalOpen={setIsCreateGroupModalOpen}
+          reloadData={fetchData}
+        />
+      )}
+      {isCreateGroupModalOpen && (
+        <CreateGroupModal
+          isModalOpen={isCreateGroupModalOpen}
+          setIsModalOpen={setIsCreateGroupModalOpen}
+          reloadData={fetchData}
+        />
       )}
     </Fragment>
   );

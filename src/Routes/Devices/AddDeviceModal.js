@@ -1,0 +1,110 @@
+import React from 'react';
+import PropTypes from 'prop-types';
+import validatorTypes from '@data-driven-forms/react-form-renderer/validator-types';
+import componentTypes from '@data-driven-forms/react-form-renderer/component-types';
+import Modal from '../../components/Modal';
+import SearchInput from '../../components/SearchInput';
+import useApi from '../../hooks/useApi';
+import apiWithToast from '../../utils/apiWithToast';
+import { getGroups, addDevicesToGroup } from '../../api';
+import { useDispatch } from 'react-redux';
+import { Button, Text } from '@patternfly/react-core';
+
+const CreateGroupButton = ({ openModal }) => (
+  <>
+    <Text>Or</Text>
+    <Button variant="secondary" className="pf-u-w-50" onClick={openModal}>
+      Create Group
+    </Button>
+  </>
+);
+
+CreateGroupButton.propTypes = {
+  openModal: PropTypes.bool,
+};
+
+const schema = {
+  fields: [
+    {
+      component: componentTypes.PLAIN_TEXT,
+      name: 'description',
+      label: 'Select a group to add %systemname or create a new one',
+    },
+    {
+      component: 'search-input',
+      name: 'name',
+      label: 'Select a group',
+      isRequired: true,
+      validate: [{ type: validatorTypes.REQUIRED }],
+    },
+    { component: 'create-group-btn', name: 'create-group-btn' },
+  ],
+};
+
+const AddDeviceModal = ({
+  isModalOpen,
+  setIsModalOpen,
+  setIsCreateGroupModalOpen,
+  reloadData,
+  deviceIds,
+}) => {
+  const dispatch = useDispatch();
+  const [response] = useApi(getGroups);
+  console.log(response);
+
+  const handleAddDevices = (values) => {
+    console.log(values);
+    console.log('submitted');
+    const statusMessages = {
+      onSuccess: {
+        title: 'Success',
+        description: `Device has been added to ${values.toString()} successfully`,
+      },
+      onError: { title: 'Error', description: 'Failed to add device to group' },
+    };
+
+    apiWithToast(
+      dispatch,
+      addDevicesToGroup(
+        parseInt(values.groupId),
+        deviceIds.map((device) => ({ ID: device.deviceID }))
+      ),
+
+      statusMessages
+    );
+  };
+  return (
+    <Modal
+      isOpen={isModalOpen}
+      openModal={() => setIsModalOpen(false)}
+      title="Add to group"
+      submitLabel="Add"
+      additionalMappers={{
+        'search-input': {
+          component: SearchInput,
+          defaultOptions: response?.data?.data || [],
+        },
+        'create-group-btn': {
+          component: CreateGroupButton,
+          openModal: () => {
+            setIsCreateGroupModalOpen(true);
+            setIsModalOpen(false);
+          },
+        },
+      }}
+      schema={schema}
+      onSubmit={handleAddDevices}
+      reloadData={reloadData}
+    />
+  );
+};
+
+export default AddDeviceModal;
+
+AddDeviceModal.propTypes = {
+  isModalOpen: PropTypes.bool,
+  setIsModalOpen: PropTypes.func,
+  setIsCreateGroupModalOpen: PropTypes.func,
+  reloadData: PropTypes.func,
+  deviceIds: PropTypes.array,
+};
