@@ -162,6 +162,7 @@ const DeviceTable = ({
   kebabItems,
   setRemoveModal,
   setIsAddModalOpen,
+  handleAddDevicesToGroup,
   hasModalSubmitted,
   setHasModalSubmitted,
 }) => {
@@ -173,6 +174,11 @@ const DeviceTable = ({
     const actions = [];
     if (isLoading) return actions;
     if (!rowData.id) return actions;
+
+    actions.push({
+      title: 'Add to group',
+      onClick: () => handleAddDevicesToGroup([{ ID: rowData.deviceID }]),
+    });
 
     if (!areActionsDisabled(rowData)) {
       actions.push({
@@ -242,7 +248,6 @@ const DeviceTable = ({
           columnNames={columnNames}
           rows={createRows(data || [])}
           actionResolver={actionResolver}
-          areActionsDisabled={canBeRemoved ? false : areActionsDisabled}
           defaultSort={{ index: 3, direction: 'desc' }}
           toolbarButtons={
             canBeAdded
@@ -288,6 +293,7 @@ DeviceTable.propTypes = {
   setIsAddModalOpen: PropTypes.func,
   hasModalSubmitted: PropTypes.bool,
   setHasModalSubmitted: PropTypes.func,
+  handleAddDevicesToGroup: PropTypes.func,
 };
 
 export default DeviceTable;

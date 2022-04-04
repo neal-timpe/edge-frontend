@@ -51,24 +51,28 @@ const AddDeviceModal = ({
   const dispatch = useDispatch();
   const [response] = useApi(getGroups);
   console.log(response);
+  console.log(deviceIds);
 
   const handleAddDevices = (values) => {
+    const { group } = values;
     console.log(values);
     console.log('submitted');
     const statusMessages = {
       onSuccess: {
         title: 'Success',
-        description: `Device has been added to ${values.toString()} successfully`,
+        description: `Device has been added to ${group.toString()} successfully`,
       },
       onError: { title: 'Error', description: 'Failed to add device to group' },
     };
 
     apiWithToast(
       dispatch,
-      addDevicesToGroup(
-        parseInt(values.groupId),
-        deviceIds.map((device) => ({ ID: device.deviceID }))
-      ),
+      () =>
+        addDevicesToGroup(
+          parseInt(group.groupId),
+          deviceIds
+          //deviceIds.map((device) => ({ ID: device.deviceID }))
+        ),
 
       statusMessages
     );

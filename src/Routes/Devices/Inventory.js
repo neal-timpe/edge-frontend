@@ -19,7 +19,8 @@ const UpdateDeviceModal = React.lazy(() =>
 const Inventory = () => {
   const [response, fetchData] = useApi(getInventory);
   const { data, isLoading, hasError } = response;
-  const [isAddDeviceModalOpen, setIsAddDeviceModalOpen] = useState(true);
+  const [isAddDeviceModalOpen, setIsAddDeviceModalOpen] = useState(false);
+  const [deviceIds, setDeviceIds] = useState([]);
   const [isCreateGroupModalOpen, setIsCreateGroupModalOpen] = useState(false);
   const [updateModal, setUpdateModal] = useState({
     isOpen: false,
@@ -28,6 +29,11 @@ const Inventory = () => {
   });
 
   const history = useHistory();
+
+  const handleAddDevicesToGroup = (ids) => {
+    setIsAddDeviceModalOpen(true);
+    setDeviceIds(ids);
+  };
 
   return (
     <Fragment>
@@ -41,6 +47,7 @@ const Inventory = () => {
           isLoading={isLoading}
           hasError={hasError}
           setUpdateModal={setUpdateModal}
+          handleAddDevicesToGroup={handleAddDevicesToGroup}
         />
       </Main>
       {updateModal.isOpen && (
@@ -73,6 +80,7 @@ const Inventory = () => {
           setIsModalOpen={setIsAddDeviceModalOpen}
           setIsCreateGroupModalOpen={setIsCreateGroupModalOpen}
           reloadData={fetchData}
+          deviceIds={deviceIds}
         />
       )}
       {isCreateGroupModalOpen && (
