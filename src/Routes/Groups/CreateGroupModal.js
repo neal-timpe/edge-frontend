@@ -56,18 +56,13 @@ const CreateGroupModal = ({
       },
       onError: { title: 'Error', description: 'Failed to add device to group' },
     };
+    console.log(deviceIds);
 
     apiWithToast(
       dispatch,
-      () =>
-        addDevicesToGroup(
-          parseInt(ID),
-          deviceIds
-          //deviceIds.map((device) => ({ ID: device.deviceID }))
-        ),
+      () => addDevicesToGroup(parseInt(ID), deviceIds),
       statusMessages
     );
-    console.log(ID);
   };
 
   return (
@@ -77,7 +72,7 @@ const CreateGroupModal = ({
       title="Create Group"
       submitLabel="Create"
       schema={createGroupSchema}
-      onSubmit={handleAddDevicesToNewGroup}
+      onSubmit={deviceIds ? handleAddDevicesToNewGroup : handleCreateGroup}
       reloadData={reloadData}
     />
   );

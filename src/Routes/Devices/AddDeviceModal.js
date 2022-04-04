@@ -23,12 +23,22 @@ CreateGroupButton.propTypes = {
   openModal: PropTypes.bool,
 };
 
-const schema = {
+const createDescription = (deviceIds) => {
+  const systemText =
+    deviceIds.length > 1 ? `${deviceIds.length} systems` : deviceIds[0].name;
+  return (
+    <Text>
+      Select a group to add <strong>{systemText} </strong> or create a new one.
+    </Text>
+  );
+};
+
+const createSchema = (deviceIds) => ({
   fields: [
     {
       component: componentTypes.PLAIN_TEXT,
       name: 'description',
-      label: 'Select a group to add %systemname or create a new one',
+      label: createDescription(deviceIds),
     },
     {
       component: 'search-input',
@@ -39,7 +49,7 @@ const schema = {
     },
     { component: 'create-group-btn', name: 'create-group-btn' },
   ],
-};
+});
 
 const AddDeviceModal = ({
   isModalOpen,
@@ -50,7 +60,6 @@ const AddDeviceModal = ({
 }) => {
   const dispatch = useDispatch();
   const [response] = useApi(getGroups);
-  console.log(response);
   console.log(deviceIds);
 
   const handleAddDevices = (values) => {
@@ -67,13 +76,7 @@ const AddDeviceModal = ({
 
     apiWithToast(
       dispatch,
-      () =>
-        addDevicesToGroup(
-          parseInt(group.groupId),
-          deviceIds
-          //deviceIds.map((device) => ({ ID: device.deviceID }))
-        ),
-
+      () => addDevicesToGroup(parseInt(group.groupId), deviceIds),
       statusMessages
     );
   };
@@ -96,7 +99,7 @@ const AddDeviceModal = ({
           },
         },
       }}
-      schema={schema}
+      schema={createSchema(deviceIds)}
       onSubmit={handleAddDevices}
       reloadData={reloadData}
     />

@@ -21,6 +21,7 @@ const Inventory = () => {
   const { data, isLoading, hasError } = response;
   const [isAddDeviceModalOpen, setIsAddDeviceModalOpen] = useState(false);
   const [deviceIds, setDeviceIds] = useState([]);
+  const [hasModalSubmitted, setHasModalSubmitted] = useState(false);
   const [isCreateGroupModalOpen, setIsCreateGroupModalOpen] = useState(false);
   const [updateModal, setUpdateModal] = useState({
     isOpen: false,
@@ -35,6 +36,7 @@ const Inventory = () => {
     setDeviceIds(ids);
   };
 
+  console.log(deviceIds);
   return (
     <Fragment>
       <PageHeader className="pf-m-light">
@@ -48,6 +50,19 @@ const Inventory = () => {
           hasError={hasError}
           setUpdateModal={setUpdateModal}
           handleAddDevicesToGroup={handleAddDevicesToGroup}
+          hasCheckbox={true}
+          selectedItems={setDeviceIds}
+          kebabItems={[
+            {
+              title: 'Add to group',
+              onClick: () =>
+                handleAddDevicesToGroup(
+                  deviceIds.map((device) => ({ ID: device.deviceID }))
+                ),
+            },
+          ]}
+          hasModalSubmitted={hasModalSubmitted}
+          setHasModalSubmitted={setHasModalSubmitted}
         />
       </Main>
       {updateModal.isOpen && (
@@ -79,7 +94,10 @@ const Inventory = () => {
           isModalOpen={isAddDeviceModalOpen}
           setIsModalOpen={setIsAddDeviceModalOpen}
           setIsCreateGroupModalOpen={setIsCreateGroupModalOpen}
-          reloadData={fetchData}
+          reloadData={() => {
+            fetchData();
+            setTimeout(() => setHasModalSubmitted(true), 800);
+          }}
           deviceIds={deviceIds}
         />
       )}
@@ -87,7 +105,10 @@ const Inventory = () => {
         <CreateGroupModal
           isModalOpen={isCreateGroupModalOpen}
           setIsModalOpen={setIsCreateGroupModalOpen}
-          reloadData={fetchData}
+          reloadData={() => {
+            fetchData();
+            setTimeout(() => setHasModalSubmitted(true), 800);
+          }}
           deviceIds={deviceIds}
         />
       )}
