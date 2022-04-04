@@ -88,6 +88,7 @@ const Inventory = () => {
           isModalOpen={isCreateGroupModalOpen}
           setIsModalOpen={setIsCreateGroupModalOpen}
           reloadData={fetchData}
+          deviceIds={deviceIds}
         />
       )}
     </Fragment>
