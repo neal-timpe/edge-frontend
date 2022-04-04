@@ -1,28 +1,26 @@
 import React from 'react';
-import {
-  Modal,
-  Button,
-  Text,
-  TextContent,
-  TextListItem,
-  TextList,
-  TextVariants,
-  TextListVariants,
-  TextListItemVariants,
-} from '@patternfly/react-core';
+import { TextContent, Text } from '@patternfly/react-core';
 import { ExclamationTriangleIcon } from '@patternfly/react-icons';
-import { DateFormat } from '@redhat-cloud-services/frontend-components/DateFormat';
-import { distributionMapper } from '../ImageManagerDetail/constants';
 import PropTypes from 'prop-types';
 import { updateDeviceLatestImage } from '../../api/index';
 import { useDispatch } from 'react-redux';
 import { addNotification } from '@redhat-cloud-services/frontend-components-notifications/redux';
+import Modal from '../../components/Modal';
+import componentTypes from '@data-driven-forms/react-form-renderer/component-types';
+import BuildModalReview from '../../components/BuildModalReview';
+import DateFormat from '@redhat-cloud-services/frontend-components/DateFormat';
+import { distributionMapper } from '../ImageManagerDetail/constants';
 
 const UpdateDeviceModal = ({ updateModal, setUpdateModal, refreshTable }) => {
   const dispatch = useDispatch();
   const imageData = updateModal?.imageData;
-  const deviceId = updateModal?.deviceData?.id;
-  const deviceName = updateModal?.deviceData?.display_name;
+  const isMultiple = updateModal.deviceData.length > 1;
+  const deviceId = isMultiple
+    ? updateModal.deviceData.map((device) => device.id)
+    : updateModal?.deviceData[0]?.id;
+  const deviceName = isMultiple
+    ? updateModal.deviceData.map((device) => device.display_name)
+    : updateModal?.deviceData[0]?.display_name;
 
   const handleUpdateModal = async () => {
     try {
@@ -34,7 +32,9 @@ const UpdateDeviceModal = ({ updateModal, setUpdateModal, refreshTable }) => {
         ...addNotification({
           variant: 'info',
           title: 'Updating device',
-          description: ` ${deviceName} was added to the queue.`,
+          description: isMultiple
+            ? ` ${deviceName.length} devices were added to the queue.`
+            : ` ${deviceName} was added to the queue.`,
         }),
       });
     } catch (err) {
@@ -60,84 +60,99 @@ const UpdateDeviceModal = ({ updateModal, setUpdateModal, refreshTable }) => {
     });
   };
 
+  const WarningText = () => (
+    <TextContent className="pf-u-pt-md">
+      <Text
+        style={{ color: 'var(--pf-global--palette--gold-500)' }}
+        component="small"
+      >
+        <ExclamationTriangleIcon /> After the update is installed, the device
+        will apply the changes.
+      </Text>
+    </TextContent>
+  );
+
+  const Description = () => (
+    <TextContent>
+      <Text>
+        Update{' '}
+        <span className="pf-u-font-weight-bold pf-u-font-size-md">
+          {isMultiple ? `${deviceName.length} systems` : deviceName}
+        </span>{' '}
+        to latest version of the image linked to it.
+      </Text>
+    </TextContent>
+  );
+
+  const updateToDetails = {
+    title: `Update to version ${imageData?.Image.Version}`,
+    rows: [
+      { title: 'Image Name', value: imageData?.Image.Name },
+      { title: 'Version', value: imageData?.Image.Version },
+      {
+        title: 'Created',
+        value: <DateFormat date={imageData?.Image.CreatedAt} />,
+      },
+      {
+        title: 'Release',
+        value: distributionMapper[imageData?.Image.Distribution],
+      },
+    ],
+  };
+
+  const packageDetails = {
+    title: `Changes from version ${imageData?.Image.Version - 1}`,
+    rows: [
+      { title: 'Added', value: imageData?.PackageDiff?.Added?.length || 0 },
+      { title: 'Removed', value: imageData?.PackageDiff?.Removed?.length || 0 },
+      { title: 'Updated', value: imageData?.PackageDiff?.Updated?.length || 0 },
+    ],
+  };
+
+  const updateSchema = {
+    fields: [
+      {
+        component: componentTypes.PLAIN_TEXT,
+        name: 'description',
+        label: Description(),
+      },
+      {
+        component: componentTypes.PLAIN_TEXT,
+        name: 'update-details',
+        label: BuildModalReview({
+          reviewObject: updateToDetails,
+          key: 'update-details',
+        }),
+      },
+      {
+        component: componentTypes.PLAIN_TEXT,
+        name: 'package-details',
+        label: BuildModalReview({
+          reviewObject: packageDetails,
+          key: 'package-details',
+        }),
+      },
+      {
+        component: componentTypes.PLAIN_TEXT,
+        name: 'warning-text',
+        label: WarningText(),
+      },
+    ],
+  };
+
   return (
     <Modal
-      variant="medium"
-      title={`Update ${deviceName} to latest image`}
-      description="Update this device to use the latest version of the image linked to it."
+      size="medium"
+      title={`Update system${isMultiple ? 's' : ''} to latest image version`}
       isOpen={updateModal.isOpen}
-      onClose={handleClose}
-      actions={[
-        <Button key="confirm" variant="primary" onClick={handleUpdateModal}>
-          Update Device
-        </Button>,
-        <Button key="cancel" variant="link" onClick={handleClose}>
-          Cancel
-        </Button>,
-      ]}
-    >
-      <TextContent>
-        <TextListItem component={TextVariants.h3}>
-          <Text component={'b'}>Update to</Text>
-        </TextListItem>
-        <TextList component={TextListVariants.dl}>
-          <TextListItem component={TextListItemVariants.dt}>
-            Image Name
-          </TextListItem>
-          <TextListItem component={TextListItemVariants.dd}>
-            {imageData?.Image.Name}
-          </TextListItem>
-          <TextListItem component={TextListItemVariants.dt}>
-            Version
-          </TextListItem>
-          <TextListItem component={TextListItemVariants.dd}>
-            {imageData?.Image.Version}
-          </TextListItem>
-          <TextListItem component={TextListItemVariants.dt}>
-            Created
-          </TextListItem>
-          <TextListItem component={TextListItemVariants.dd}>
-            <DateFormat date={imageData?.Image.CreatedAt} />
-          </TextListItem>
-          <TextListItem component={TextListItemVariants.dt}>
-            Release
-          </TextListItem>
-          <TextListItem component={TextListItemVariants.dd}>
-            {distributionMapper[imageData?.Image.Distribution]}
-          </TextListItem>
-        </TextList>
-        <TextListItem component={TextVariants.h3}>
-          <Text component={'b'}>Package Details</Text>
-        </TextListItem>
-        <TextList component={TextListVariants.dl}>
-          <TextListItem component={TextListItemVariants.dt}>Added</TextListItem>
-          <TextListItem component={TextListItemVariants.dd}>
-            {imageData?.PackageDiff?.Added?.length || 0}
-          </TextListItem>
-          <TextListItem component={TextListItemVariants.dt}>
-            Removed
-          </TextListItem>
-          <TextListItem component={TextListItemVariants.dd}>
-            {imageData?.PackageDiff?.Removed?.length || 0}
-          </TextListItem>
-          <TextListItem component={TextListItemVariants.dt}>
-            Updated
-          </TextListItem>
-          <TextListItem component={TextListItemVariants.dd}>
-            {imageData?.PackageDiff?.Updated?.length || 0}
-          </TextListItem>
-        </TextList>
-      </TextContent>
-      <TextContent className="pf-u-pt-md">
-        <Text
-          style={{ color: 'var(--pf-global--palette--gold-500)' }}
-          component="small"
-        >
-          <ExclamationTriangleIcon /> After the update is installed, the device
-          will apply the changes.
-        </Text>
-      </TextContent>
-    </Modal>
+      openModal={() =>
+        setUpdateModal((prevState) => ({ ...prevState, isOpen: false }))
+      }
+      submitLabel="Update Device"
+      schema={updateSchema}
+      onSubmit={handleUpdateModal}
+      reloadData={refreshTable}
+    />
   );
 };
 
@@ -145,7 +160,7 @@ UpdateDeviceModal.propTypes = {
   refreshTable: PropTypes.func,
   updateModal: PropTypes.shape({
     isOpen: PropTypes.bool.isRequired,
-    deviceData: PropTypes.object.isRequired,
+    deviceData: PropTypes.array.isRequired,
     imageData: PropTypes.object,
   }).isRequired,
   setUpdateModal: PropTypes.func.isRequired,

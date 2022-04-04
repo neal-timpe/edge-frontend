@@ -107,11 +107,15 @@ const columnNames = [
 
 const createRows = (devices) =>
   devices?.map((device) => ({
-    deviceID: device?.Device?.ID,
-    id: device?.Device?.UUID,
-    display_name: device?.Device?.DeviceName,
-    updateImageData: device?.ImageInfo?.UpdatesAvailable?.[0],
-    deviceStatus: getDeviceStatus(device),
+    rowInfo: {
+      deviceID: device?.Device?.ID,
+      id: device?.Device?.UUID,
+      display_name: device?.Device?.DeviceName,
+      updateImageData: device?.ImageInfo?.UpdatesAvailable?.[0],
+      deviceStatus: getDeviceStatus(device),
+      imageSetId: device?.ImageInfo?.Image?.ImageSetID,
+      imageName: device?.ImageInfo?.Image?.Name,
+    },
     noApiSortFilter: [
       device?.Device?.DeviceName || '',
       device?.ImageInfo?.Image?.Name || '',
@@ -173,7 +177,7 @@ const DeviceTable = ({
   const actionResolver = (rowData) => {
     const actions = [];
     if (isLoading) return actions;
-    if (!rowData.id) return actions;
+    if (!rowData.rowInfo.id) return actions;
 
     actions.push({
       title: 'Add to group',
@@ -185,17 +189,17 @@ const DeviceTable = ({
 
     if (!areActionsDisabled(rowData)) {
       actions.push({
-        title: 'Update device',
+        title: 'Update',
         onClick: (_event, _rowId, rowData) => {
           setUpdateModal((prevState) => {
             return {
               ...prevState,
               isOpen: true,
               deviceData: {
-                id: rowData?.id,
-                display_name: rowData?.display_name,
+                id: rowData.rowInfo.id,
+                display_name: rowData.rowInfo.display_name,
               },
-              imageData: rowData?.updateImageData,
+              imageData: rowData.rowInfo.updateImageData,
             };
           });
         },
@@ -204,12 +208,12 @@ const DeviceTable = ({
 
     if (canBeRemoved) {
       actions.push({
-        title: 'Remove device',
+        title: 'Remove from group',
         onClick: () =>
           setRemoveModal({
-            name: rowData?.display_name,
+            name: rowData.rowInfo.display_name,
             isOpen: true,
-            deviceId: rowData?.deviceID,
+            deviceId: rowData.rowInfo.deviceID,
           }),
       });
     }
@@ -218,7 +222,7 @@ const DeviceTable = ({
   };
 
   const areActionsDisabled = (rowData) =>
-    rowData?.deviceStatus !== 'updateAvailable';
+    rowData.rowInfo?.deviceStatus !== 'updateAvailable';
 
   return (
     <>
