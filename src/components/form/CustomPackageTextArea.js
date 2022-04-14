@@ -40,11 +40,16 @@ const CustomPackageTextArea = ({ ...props }) => {
     }
   };
 
+  const placeholder = `Enter or paste packages from linked repositories, one entry per line.
+ExamplePackage
+example-package
+examplapackage`;
+
   return (
     <FormGroup label="Packages" type="string">
       <TextArea
         aria-label="custom-package-wizard-step"
-        placeholder="Enter or paste packages from linked repositories, one entry per line.&#13;ExamplePackage&#13;example-package&#13;examplapackage"
+        placeholder={placeholder}
         value={value}
         onChange={(newValue) => setValue(newValue)}
         style={{
